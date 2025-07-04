@@ -1,13 +1,29 @@
-import {useState} from "react";
+import {use, useEffect, useState} from "react";
 
 function TimeTracker() {
     const [counter, setCounter] = useState(0)
     const [counterInterval, setCounterInterval] = useState()
 
     const [btnState, setBtnState] = useState("Start");
+    const [tasks, setTasks] = useState(()=> {
+        const getLocalStorage = localStorage.getItem("tasks");
+        return getLocalStorage ? JSON.parse(getLocalStorage) : [{ name: "Test", timer: 0 }]
+    })
 
-    const [tasks, setTasks] = useState([{name: "Test", timer: 0}])
+
+
+    useEffect(() => {
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+
+    }, [tasks]);
+
+
+
+
+
     const [inputTask, setInputTask] = useState()
+
+
 
     function startTimer() {
         if (btnState === "Start") {
@@ -18,6 +34,7 @@ function TimeTracker() {
             clearInterval(counterInterval)
             setBtnState("Start")
         }
+
 
     }
 
@@ -30,20 +47,33 @@ function TimeTracker() {
         setInputTask(e.target.value)
     }
 
-
-    function handleTableTimer(cell){
+    const [tempCounterInterval, setTempCounterInterval] = useState(0)
+    function handleTableTimer(e, cell){
         const updatedTable = tasks.map((t)=> {
             if (t.name === cell.name){
-                return {...t, timer:cell.timer+1}
+                console.log(e.target.value)
+                const v = e.target.value
+                if (v == "start") {
+                    console.log("WDDK")
+
+                    clearInterval(tempCounterInterval)
+                    let myValue = cell.timer+1;
+                    setTempCounterInterval(setInterval(() => myValue, 1000))
+                    //e.target.valueOf("Stop")
+
+                    return {...t, timer:myValue}
+                }
+
             }
             return t
 
         });
 
-        setTasks(updatedTable)
+        setTasks(updatedTable);
+
 
     }
-
+    
 
     return (
         <>
@@ -66,7 +96,6 @@ function TimeTracker() {
                        }}/>
 
                 <button onClick={()=>{
-
                     setTasks((prev) => [...prev, {name:inputTask, timer:0}])
 
                     setInputTask("")
@@ -85,7 +114,7 @@ function TimeTracker() {
                         <td>{t.name}</td>
                         <td>{t.timer}</td>
                         <td>
-                            <button onClick={()=>handleTableTimer(t)}>▶️</button>
+                            <button onClick={(e)=>handleTableTimer(e, t)} className="submitTaskBtn" value="start">▶️</button>
                         </td>
                     </tr>)}
 
